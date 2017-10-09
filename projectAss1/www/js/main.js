@@ -1,41 +1,43 @@
-var todo = [];
 
-window.addEventListener("load",function(){
+var app=
+{
+    userid:'',
+    email:'',
+}
+
+window.addEventListener('load', onWindowLoad);
+
+function onWindowLoad()
+{
     hide();
-    loadList(todo);
-    // var tasklist = document.getElementById("task");
-    // document.getElementById("task").addEventListener("click",function(event){
-    //     var id=event.target.getAttribute("id");
-    //     var elm=document.getElementById(id);
-    //     if(elm.classList.contains("done")){
-    //         changeStatus(id,0);
-    //     }
-    //     else{
-    //         changeStatus(id,1);
-    //     }
-    //     showButton("remove",todo);
-    // });
-
-    document.getElementById("remove").addEventListener("touchend",function(){
-        var len = todo.length-1;
-        for(i=len;i>=0;i--){
-            var item = todo[i];
-            if(item.status==1){
-                todo.splice(i,1);
-                saveList(todo);
-                renderList(todo);
-            }
+    firebase.auth().onAuthStateChanged(function (user) 
+    {
+        if (user) {
+            app.userid = user.uid;
+            app.email = user.email;
+            getEmail(app.userid);
+            loadList();
+            fixButton();
+            document.getElementById("hello").innerHTML="Hello&nbsp"+app.email;
+    
+        } 
+        else {
+            app.userid = '';
+            app.email = '';
+            loadList();
+            fixButton();
+            document.getElementById("task-list").innerHTML="";
         }
-        // showButton("remove",todo);
     });
-});
+    loadList();
+}
 
 function savetask()
 {
     
     var inputform = document.getElementById("input-form");
-    task=document.getElementById("task").value;
-    date=document.getElementById("date").value;
+    var task=document.getElementById("task").value;
+    var date=document.getElementById("date").value;
     if(task!="" && task!=undefined){
         createTask(task,date);
         inputform.reset();
@@ -43,98 +45,75 @@ function savetask()
 };
 
 function createTask(task,date){
-    id = new Date().getTime();
-    taskitem ={id:id,task:task,date:date,status:0};
-    todo.push(taskitem);
-    renderList(todo);
+    var id = new Date().getTime();
+    var ref='users/'+app.userid+'/tasks/'+id;
+    var obj={
+        task:task,
+        date:date
+    };
+    writeData(ref,obj);
 }
 
-function saveList(list_array){
-    if(window.localStorage){
-        localStorage.setItem("tasks",JSON.stringify(list_array));
-    }
+function loadList(){
+    firebase.database().ref('users/'+app.userid+'/tasks').once('value')
+    .then(function (snapshot)
+    {
+        var tasks=snapshot.val();
+        renderList(tasks);
+    })
+    .catch(function (error) {
+        console.log(error.message);
+    });
 }
 
-function loadList(list_array){
-    if(window.localStorage){
-        try{
-            if(JSON.parse(localStorage.getItem("tasks"))){
-                todo = JSON.parse(localStorage.getItem("tasks"));
-            }
-        }
-        catch(error){
-            console.log("error"+error);
-        }
-    }
-    renderList(todo);
-}
-
-function renderList(list_array){
+function renderList(obj){
     var taskcontainer = document.getElementById("task-list");
-    // var datecontainer = document.getElementById("date-list");
-    // var buttoncontainer = document.getElementById("button-list");
-    saveList(list_array);
     hide();
     taskcontainer.innerHTML="";
-    // datecontainer.innerHTML="";
-    itemstotal = list_array.length;
-    for(i=0;i<itemstotal;i++){
-        item = list_array[i];
+    var itemstotal = Object.keys(obj).length;
+    var itemkey = Object.keys(obj);
+    var itemvalue =Object.values(obj);
+    
+    
+    for(var i=0;i<itemstotal;i++){
+        var item = itemkey[i];
+        var taskname = itemvalue[i].task;
+        var taskdate = itemvalue[i].date;
         
-        
-        // listitem = document.createElement('LI');
-        // listitem.setAttribute("class","list-group-item");
-        // tasklisttext = document.createTextNode(item.task);
-        // listitem.appendChild(tasklisttext);
-        // listitem.setAttribute("id",item.id);
-        // listitem.setAttribute("data-status",item.status);
-        
-        
-        // listitem2 = document.createElement('LI');
-        // listitem2.setAttribute("class","list-group-item");
-        // datelisttext = document.createTextNode(item.date);
-        // listitem2.appendChild(datelisttext);
-        // listitem2.setAttribute("id",item.id);
-        // listitem2.setAttribute("data-status",item.status);
-        
-        // listitem3 = document.createElement('LI');
-        // listitem3.setAttribute("class","list-group-item");
-        // button = document.createElement('BUTTON');
-        // buttontext = document.createTextNode("DELETE");
-        // button.appendChild(buttontext);
-        // button.setAttribute("id","remove");
-        // listitem3.appendChild(button);
-        
-        listitem = document.createElement('LI');
+        var listitem = document.createElement('LI');
         listitem.setAttribute("class","list-group-item");
-        tasklisttext = document.createTextNode(item.task);
-        datelisttext = document.createTextNode(item.date);
-        head = document.createElement('H5');
+        listitem.setAttribute("id","l"+item);
+        var tasklisttext = document.createTextNode(taskname);
+        var datelisttext = document.createTextNode(taskdate);
+        var head = document.createElement('H5');
         head.setAttribute("class","list-group-item-heading");
         head.appendChild(datelisttext);
-        text = document.createElement('H5');
+        var text = document.createElement('H5');
         text.setAttribute("class","list-group-item-text");
         text.appendChild(tasklisttext);
         
-        span=document.createElement('SPAN');
+        var span=document.createElement('SPAN');
         span.setAttribute("class","pull-right");
-        button = document.createElement('BUTTON');
-        buttontext = document.createTextNode("DELETE");
+        var button = document.createElement('BUTTON');
+        var buttontext = document.createTextNode("DELETE");
         button.appendChild(buttontext);
-        button.setAttribute("id","remove");
+        button.setAttribute("id",item);
+        //button.setAttribute("onclick",deleteTask(item))
+        button.onclick=function(val){return function(){deleteTask(val);}}(item);
+        
         span.appendChild(button);
         
-        right = document.createElement('DIV');
+        var right = document.createElement('DIV');
         right.setAttribute("class","col-xs-9");
         
-        left = document.createElement('DIV');
+        var left = document.createElement('DIV');
         left.setAttribute("class","col-xs-3");
         
         right.appendChild(span);
         left.appendChild(head);
         left.appendChild(text);
         
-        container= document.createElement('DIV');
+        var container= document.createElement('DIV');
         container.setAttribute("class","container");
         
         container.appendChild(left);
@@ -143,39 +122,9 @@ function renderList(list_array){
         listitem.appendChild(container);
         
         taskcontainer.appendChild(listitem);
-        // datecontainer.appendChild(listitem2);
-        // taskcontainer.appendChild(listitem);
-        // buttoncontainer.appendChild(listitem3);
         
     }
 }
-
-// function changeStatus(id,status){
-//     switch(status){
-//         case 1:
-//             document.getElementById(id).setAttribute("class","done");
-//             for(i=0;i<todo.length;i++){
-//                 taskitem = todo[i];
-//                 if(taskitem.id == id){
-//                     taskitem.status = 1;
-//                     saveList(todo);
-//                 }
-//             }
-//         break;
-//         case 0:
-//             document.getElementById(id).removeAttribute("class");
-//             for(i=0;i<todo.length;i++){
-//                 taskitem = todo[i];
-//                 if(taskitem.id == id){
-//                     taskitem.status = 0;
-//                     saveList(todo);
-//                 }
-//             }
-//         break;
-//         default:
-//             break;
-//     }
-// }
 
 function hide(){
     document.getElementById("view1").style.display="none";
@@ -196,3 +145,112 @@ function onDeviceReady(){
     document.addEventListener("resume",function(){loadList(todo);},false);
     document.addEventListener("backbutton",function(){saveList(todo);navigator.app.exitApp();},false);
 }
+
+
+
+function register() 
+{
+    var email = document.getElementById('email').value;
+    var password = document.getElementById('password').value;
+    firebase.auth().createUserWithEmailAndPassword(email, password)
+    .then(function () 
+    {
+        var userid = firebase.auth().currentUser.uid;
+        var ref = 'users/' + userid;
+        var obj = {
+            email:email
+        };
+        app.email = email;
+        app.userid=userid;
+        writeData(ref,obj);
+    })
+    .catch(function (error) {
+        var errorCode = error.code;
+        var errorMessage = error.message;
+        console.log(errorMessage);
+    });
+    document.getElementById('login-form').reset();
+}
+
+
+function login() 
+{
+    var email = document.getElementById('email').value;
+    var password = document.getElementById('password').value;
+    firebase.auth().signInWithEmailAndPassword(email, password)
+    .then(function(){
+        var userid=firebase.auth().currentUser.uid;
+        getEmail(userid);
+        fixButton()
+        loadList();
+    })
+    .catch(function (error) {
+        var errorCode = error.code;
+        var errorMessage = error.message;
+        console.log(errorMessage);
+    });
+    document.getElementById('login-form').reset();
+}
+
+
+function logout()
+{
+    firebase.auth().signOut()
+    .then(function () {
+        fixButton()
+        loadList();
+    })
+    .catch(function (error) {
+        var errorCode = error.code;
+        var errorMessage = error.message;
+        console.log(errorMessage);
+    });   
+}
+
+
+function getEmail(userid)
+{
+    firebase.database().ref('users/'+userid).once('value')
+    .then(function(snapshot)
+    {
+        var email=snapshot.val().email;
+        app.email=email;
+    });
+}
+
+function writeData(ref,obj)
+{
+    firebase.database().ref(ref).set(obj)
+    .then(function (result) 
+    {
+      console.log(result);
+    });
+}
+
+
+function deleteTask(id)
+{
+    var appendtask=document.getElementById("l"+id);
+    appendtask.parentNode.removeChild(appendtask);
+    console.log(appendtask);
+    var ref='users/'+app.userid+'/tasks/'+id;
+    firebase.database().ref(ref).remove()
+    .then(function (result){
+      console.log(result);
+    })
+}
+
+function fixButton(){
+    if(!app.userid)
+    {
+        document.getElementById("loginBtn").style.display="block";
+        document.getElementById("logoutBtn").style.display="none";
+    }
+    else
+    {
+        document.getElementById("loginBtn").style.display="none";
+        document.getElementById("logoutBtn").style.display="block";
+    }
+}
+
+

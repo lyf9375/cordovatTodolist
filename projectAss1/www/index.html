@@ -4,23 +4,95 @@
         <title>To do list</title>
         <meta name="viewport" content="width=device-width,initial-scale=1">
         <link rel="stylesheet" href="css/bootstrap.css">
+        <script>
+            window.nodeRequire = require;
+            delete window.require;
+            delete window.exports;
+            delete window.module;
+        </script>
+        <script src="js/jquery.js"></script>
         <script src="js/main.js"></script>
         <script src="js/bootstrap.js"></script>
-        <script src="js/jquery.js"></script>
+        
+        
+        <script src="https://www.gstatic.com/firebasejs/4.3.1/firebase.js"></script>
+        <script>
+          // Initialize Firebase
+          var config = {
+            apiKey: "AIzaSyA9AxnM-fjwX36iHlMilk0lCdgYrZ_PvBk",
+            authDomain: "todolist-392a1.firebaseapp.com",
+            databaseURL: "https://todolist-392a1.firebaseio.com",
+            projectId: "todolist-392a1",
+            storageBucket: "todolist-392a1.appspot.com",
+            messagingSenderId: "371088638180"
+          };
+          firebase.initializeApp(config);
+          
+          
+        </script>
     </head>
     <body>
         <header>
             <div class="row">
                 <div class="col-xs-5 col-xs-offset-3">
-                    <h3>to do list</h3>
+                    <h3 id="title">to do list</h3>
                 </div>
-                <div class="col-xs-4">
-                    <button>alert</button>
+                <div class="col-xs-4" id="loginBtn">
+                    <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#login">Login/Register</button>
+                </div>
+                
+                <div class="col-xs-4"  id="logoutBtn">
+                    <div class="row">
+                        <div class="col-xs-4">
+                            <h4 id="hello">Hello</h4>
+                        </div>
+                        <div class="col-xs-4">
+                            <button class="btn btn-primary" onclick="logout()">Logout</button>
+                        </div>
+                    </div>
+                    
                 </div>
             </div>
             
         </header>
         <main>
+            <div class="modal fade" id="login" tabindex="-1" role="dialog" aria-labelledby="loginlabel" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                                <h4 class="modal-title" id="myModalLabel">Login Window</h4>
+                            </div>
+                            <div class="modal-body">
+                                <form id="login-form" class="form-horizontal" role="form">
+                                    <div class="form-group">
+                                        <label for="email" class="col-xs-3 control-label">Email</label>
+                                        <div class="col-xs-8">
+                                            <input type="text" class="form-control" id="email">
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="password" class="col-xs-3 control-label">Password</label>
+                                        <div class="col-xs-8">                            
+                                            <input type="text" class="form-control" id="password">
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                            <div class="modal-footer">
+                               <div class="col-xs-offset-2 col-xs-2">
+                                    <button type="submit" class="btn btn-default" data-dismiss="modal" onclick="login()">Login</button>
+                                </div>
+                                <div class="col-xs-2">
+                                    <button type="submit" class="btn btn-default" data-dismiss="modal" onclick="register()">Register</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                
+                
             <div id="view2">
                 <div class="row">
                     <div class="col-xs-10 col-xs-offset-1">
@@ -28,21 +100,6 @@
                         <ul id="task-list" class="list-group"></ul>
                         <button onclick="show()">New</button>
                     </div>
-                    <!--<div class="col-xs-3 col-md-offset-1">-->
-                    <!--    <h5>Date</h5>-->
-                    <!--    <ul id="date-list" class="list-group">-->
-                    <!--    </ul>-->
-                    <!--</div>-->
-                    <!--<div class="col-xs-5">-->
-                    <!--    <h5>Task</h5>-->
-                    <!--    <ul id="task-list" class="list-group">-->
-                    <!--    </ul>-->
-                    <!--</div>-->
-                    <!--<div class="col-xs-3">-->
-                    <!--    <h5>Delete</h5>-->
-                    <!--    <ul id="button-list" class="list-group">-->
-                    <!--    </ul>-->
-                    <!--</div>-->
                     
                 </div>
                 
