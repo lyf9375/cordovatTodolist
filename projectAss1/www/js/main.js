@@ -79,6 +79,9 @@ function renderList(obj){
         var item = itemkey[i];
         var taskname = itemvalue[i].task;
         var taskdate = itemvalue[i].date;
+        //notification(taskname,taskdate);
+        
+        
         
         var listitem = document.createElement('LI');
         listitem.setAttribute("class","list-group-item");
@@ -144,8 +147,30 @@ function onDeviceReady(){
     document.addEventListener("pause",function(){saveList(todo);},false);
     document.addEventListener("resume",function(){loadList(todo);},false);
     document.addEventListener("backbutton",function(){saveList(todo);navigator.app.exitApp();},false);
+    document.addEventListener("notification",function(){notification()},false);
 }
 
+function notification(task,date){
+    
+    cordova.plugins.notification.local.schedule({
+        id: 1,
+        title: "Notification",
+        text: task,
+        at: date,
+    });
+    vibrate();
+    playBeep();
+}
+
+function vibrate() {
+    navigator.notification.vibrate(2000);
+}
+
+function playBeep() {
+    navigator.notification.beep(3);
+}
+
+$scope
 
 
 function register() 
@@ -252,5 +277,4 @@ function fixButton(){
         document.getElementById("logoutBtn").style.display="block";
     }
 }
-
 
